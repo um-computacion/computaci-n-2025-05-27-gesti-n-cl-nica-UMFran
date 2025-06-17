@@ -706,12 +706,10 @@ class TestClinica(unittest.TestCase):
         clinica = Clinica()
 
         especialidad1 = Especialidad("Pediatría")
-        especialidad2 = Especialidad("pediatría")  # mismo nombre pero distinto casing
-
+        especialidad2 = Especialidad("pediatría")  
         # Caso feliz: se agrega una especialidad nueva
         clinica.agregar_especialidad(especialidad1)
         self.assertIn(especialidad1, clinica.__especialidades__)
-
         # Caso duplicado: se intenta agregar la misma especialidad con diferente casing/espacios
         with self.assertRaises(ValueError) as context:
             clinica.agregar_especialidad(especialidad2)
@@ -895,7 +893,7 @@ class TestCLI(unittest.TestCase):
             mock_print.assert_any_call("1. Dr. Ana Gómez")
             mock_print.assert_any_call("2. Dr. Juan Pérez")
 
-    @patch("builtins.input", side_effect=["Cardiología", "Lunes", "Miércoles", ""])  # Termina con Enter vacío
+    @patch("builtins.input", side_effect=["Cardiología", "Lunes", "Miércoles", ""])
     @patch("builtins.print")
     def test_agregar_especialidad(self, mock_print, mock_input):
         with patch("src.clinica.Clinica.agregar_especialidad") as mock_agregar:
@@ -907,7 +905,6 @@ class TestCLI(unittest.TestCase):
     @patch("builtins.input", side_effect=["202020", "Lunes"])
     @patch("builtins.print")
     def test_obtener_especialidad_disponible(self, mock_print, mock_input):
-        # Simular que la matrícula existe en la clínica
         self.cli.clinica.__medicos__["202020"] = "Médico Mock"
         
         with patch("src.clinica.Clinica.obtener_especialidad_disponible", return_value="Especialidad disponible en Lunes"):

@@ -676,18 +676,14 @@ def main():
     print("🏥 Bienvenido al Sistema de Gestión de Clínica Médica")
     print("\n¿Qué desea hacer?")
     print("1. Ejecutar la aplicación")
-    print("2. Ejecutar tests unitarios")
-    print("3. Salir")
+    print("2. Salir")
     
-    opcion = input("Seleccione una opción (1-3): ").strip()
+    opcion = input("Seleccione una opción (1-2): ").strip()
     
     if opcion == "1":
         cli = CLI()
         cli.ejecutar()
     elif opcion == "2":
-        print("\nEjecutando tests unitarios...")
-        unittest.main(argv=[''], exit=False, verbosity=2)
-    elif opcion == "3":
         print("¡Hasta luego!")
     else:
         print("Opción inválida")

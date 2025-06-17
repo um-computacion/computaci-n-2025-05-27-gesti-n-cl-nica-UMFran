@@ -402,8 +402,4 @@ Como ejecutar el sistema:
   
 Como evaluar el sistema:
 
-  Este aspecto se relaciona de manera directa con el anterior, ya que dentro de la clase main tenemos una opción que nos permite ejecutar los tests, estos están desarrollados en un archivo aparte per osu funcionalidad es la de evaluar las funciones de las diversas clases para garantizar que el código funciona en su gran mayoría. 
-  
-  Según lo leído en este README y lo indicado en el dictado de clases, se calcularon unos 10 tests por clase pero en general se evaluaron inconvenientes que se pueden presentar en la vida propia de la puesta a prueba de este sistema de gestión.
-
-  
+  Este aspecto se relaciona de manera directa con el anterior, es necesario utilizar el comando "python -m unittest" en la terminal del archivo llamado tests.py ya que de esta manera se ejecutan de manera automática todos los tests y resalta aquellos que tuvieron un error 
