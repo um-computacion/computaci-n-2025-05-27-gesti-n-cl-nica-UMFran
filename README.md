@@ -1,11 +1,12 @@
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/y_fEcNZn)
 # 🏥 Sistema de Gestión para una Clínica
 
 ## 👤 Información del Alumno
 
 ### 📋 Datos Personales
-- **Nombre y Apellido**: [Completar con nombre y apellido]
+- **Nombre y Apellido**: Francisco Martin Gallardo
 - **Ciclo Lectivo**: 2025
-- **Carrera**: [Completar con nombre de la carrera]
+- **Carrera**: Ingeniería en Informatica
 
 ## ⏰ Información Importante sobre la Entrega
 
@@ -344,4 +345,61 @@ El sistema debe incluir pruebas unitarias utilizando el módulo `unittest`, que 
 
 - ✅ Confirmar que los turnos y recetas se guardan correctamente en la historia clínica del paciente.
 
----
+Explicación del Código:
+
+  Descripción: 
+
+      Este proyecto implementa un sistema completo de gestión para una clínica médica, desarrollado en Python y utilizando metodologías y estructuras aprendidas en el primer semestre de cursado en la materia Computación.
+
+      Dentro del código se utilizó una programación orientada a objetos, clave para el desarrollo del sistema de gestión. Dentro del mismo y siguiendo con las instrucciones dadas en este README por parte de la cátedra identificamos 7 clases claves para el funcionamiento.
+
+      1. Paciente: 
+          Es la clase que representa al individuo que llega a ser atendido a la clínica, siguiendo con esta lógica establecemos atributos claves como el Nombre, DNI, Fecha de Nacimiento. Es una clase muy sencilla ya que no repesenta una complejidad al momento de elaborarla. 
+
+          Por parte de los tests respectivos para esta clase encontramos aquellos que prueban las funciones básicas como "obtener_dni" y similares.
+
+      2. Médico: 
+          Es una clase similar a paciente solo que un poco más compleja ya que se relaciona directamente con la clase de Especilidad, por lo que podemos aplicar de manrea driecta el funcionamiento de la relación entre clases en la programación orientada a objetos.
+
+          Los tests son de manera similar a los de paciente, evaluan errores comunes que pueden pasar al momento de ingresary validar atributos ("Matricula", "Nombre", "Especialidad")
+      
+      3. Especialidad:
+          Esta clase es una de vital importancia ya que se relaciona de manera directa con las siguientes, es una clase específicamente para la especialidad de los médicos y los días que atienden definiendo por ende la manera de agendar las recetas y turnos.
+
+          Los tests de esta clase se parecen a los que vamos a ejecutar más adelante con las otras clases a desarrollar, solo que en este caso evaluamos características principales y funcionalidades de vital importancia como especialidades repetidas, días inválidos, errores de ingreso, entre otros.
+
+      4. Turnos:
+          La clase de Turnos esa una que ya relaciona las dichas anteriormente, esto es porque se necesitan tanto a los pacientes como a los médicos con sus respectivas especialidades ya que un médico no puede atender con una especialidad un día que no esté definido.
+
+          Esto nos lleva a los tests, donde evaluamos las características antes mencionadas para garantizar un funcionamiento óptimo para evitar inconsistencias en la ejecución
+
+      5. Recetas:
+          La clase Receta es una que vamos a terminar relacionando más adelante con otras clases, sin embargo tiene características de funcionamiento en base a la relación que la clase Turno, ya que se necesitan a los pacientes como a los médicos.
+
+          Dentro de los tests sobre esta clase evaluamos que los datos se ingresen de manera correcta, no hayan discrepaciancias entre las recetas y las mismas sean váilidas en un contexto de puesta a prueba real del sistema.
+
+      6. Histpria Clínica:
+          La clase de Historia Clínica es una que se utiliza como registro de todas aquellas funcionalidades de los Pacientes, ya sean los Turnos que se le dieron, las Recetas que se le otorgaron, con qué Médicos se atendió entre otros.
+
+          Los tests evaluan esto de manera directa, ya sea si se almacenan de manera correcta, se puede encontrar el registro de cada paciente, entre otros
+      
+      7. Clínica:
+          La clínica como clase es la más completa y sosfisticada de las clases hechas, ya que se relaciona con todas las clases anteriores. Se agregan funciones para definir parámetros para estas clases mencionadas, definir información, validar errores, entre otros.
+
+          Los tests de esta clase con de los más extensos ya que, justamente al tener que llamar funciones y atributos de otras clases, ponen a prueba lo aprendido en clase y la práctica dada.
+      
+      8. CLI: 
+          La clase de CLI es de la más simples y complicadas al mismo tiempo, ya que es la interfáz de funcionamiento del sistema, por lo que se encargan de atrapar las excepciones definidas en el código, llamar funciones de la clase Clínica y otras funcionalidades que permiten la interacción del sistema con el usuario.
+
+Como ejecutar el sistema:
+
+  El sistema se ejecuta atrevéz de una función main que tiene 3 opciones:
+
+  1. Utilizar el sistema: 
+    En esta opción se ejecuta el código explicado anteriormente mediante la llamada a la clase CLI que nos permite interactuar con la clínica como sistema de gestión.
+
+    Encontraremos diversas opciones que nos permiten hacer una variedad de funciones respecto al sistema de gestión
+  
+Como evaluar el sistema:
+
+  Este aspecto se relaciona de manera directa con el anterior, es necesario utilizar el comando "python -m unittest" en la terminal del archivo llamado tests.py ya que de esta manera se ejecutan de manera automática todos los tests y resalta aquellos que tuvieron un error 
