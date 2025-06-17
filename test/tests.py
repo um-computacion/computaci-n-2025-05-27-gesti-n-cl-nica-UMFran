@@ -58,6 +58,97 @@ class TestPaciente(unittest.TestCase):
             Paciente("12345678", "Juan Pérez", "1980-05-10")  
         with self.assertRaises(ValueError):
             Paciente("87654321", "Ana Gómez", "10/05/80")
+    
+    def test_fecha_inexistente_pero_formato_correcto(self):
+        """Verifica error con fechas que no existen pero tienen formato correcto"""
+        with self.assertRaises(ValueError):
+            Paciente("12345678", "Juan Pérez", "32/01/1980")  # Día inválido
+        with self.assertRaises(ValueError):
+            Paciente("12345678", "Juan Pérez", "01/13/1980")  # Mes inválido
+        with self.assertRaises(ValueError):
+            Paciente("12345678", "Juan Pérez", "29/02/1981")  # 29 de febrero en año no bisiesto
+
+    def test_fecha_valida_casos_especiales(self):
+        """Verifica que fechas válidas especiales se crean correctamente"""
+        # Año bisiesto
+        paciente_bisiesto = Paciente("12345678", "Juan Pérez", "29/02/2000")
+        self.assertEqual(paciente_bisiesto.__fecha_nacimiento__, "29/02/2000")
+        
+        # Último día del mes
+        paciente_ultimo_dia = Paciente("12345678", "Juan Pérez", "31/01/1980")
+        self.assertEqual(paciente_ultimo_dia.__fecha_nacimiento__, "31/01/1980")
+        
+        # Primer día del año
+        paciente_primero_enero = Paciente("12345678", "Juan Pérez", "01/01/2000")
+        self.assertEqual(paciente_primero_enero.__fecha_nacimiento__, "01/01/2000")
+
+    def test_set_dni_conversion_tipos(self):
+        """Verifica que set_dni convierte correctamente a string"""
+        self.paciente.set_dni(87654321)  # Número entero
+        self.assertEqual(self.paciente.__dni__, "87654321")
+        
+        self.paciente.set_dni(12345.0)  # Float
+        self.assertEqual(self.paciente.__dni__, "12345.0")
+
+    def test_creacion_fecha_parsing_exitoso(self):
+        """Verifica que el parsing de fecha se realiza correctamente"""
+        paciente = Paciente("12345678", "Juan Pérez", "15/03/1990")
+        # Verificar que el objeto datetime se creó correctamente
+        self.assertIsInstance(paciente.__fecha_nacimiento__, str)
+        # Verificar que se puede crear el objeto datetime internamente
+        fecha_obj = datetime.strptime(paciente.__fecha_nacimiento__, "%d/%m/%Y")
+        self.assertEqual(fecha_obj.day, 15)
+        self.assertEqual(fecha_obj.month, 3)
+        self.assertEqual(fecha_obj.year, 1990)
+
+    def test_casos_edge_nombre_caracteres_especiales(self):
+        """Verifica que nombres con caracteres especiales se manejan correctamente"""
+        paciente_acentos = Paciente("12345678", "José María", "01/01/1980")
+        self.assertEqual(paciente_acentos.__nombre__, "José María")
+        
+        paciente_apostrofe = Paciente("12345678", "O'Connor", "01/01/1980")
+        self.assertEqual(paciente_apostrofe.__nombre__, "O'Connor")
+
+    def test_dni_caracteres_especiales(self):
+        """Verifica que DNI con diferentes formatos se manejan correctamente"""
+        paciente_con_puntos = Paciente("12.345.678", "Juan Pérez", "01/01/1980")
+        self.assertEqual(paciente_con_puntos.__dni__, "12.345.678")
+        
+        paciente_con_guiones = Paciente("12-345-678", "Juan Pérez", "01/01/1980")
+        self.assertEqual(paciente_con_guiones.__dni__, "12-345-678")
+
+    def test_obtener_metodos_con_nombres_cambiados(self):
+        """Verifica que los métodos obtener funcionan correctamente después de cambios"""
+        self.paciente.set_nombre("Carlos Nuevo")
+        self.paciente.set_dni("99999999")
+        
+        self.assertEqual(self.paciente.obtener_dni(), "El DNI del paciente Carlos Nuevo es: 99999999")
+        self.assertEqual(self.paciente.obtener_nombre(), "El nombre del paciente es: Carlos Nuevo")
+        self.assertEqual(self.paciente.obtener_nacimiento(), "La fecha de nacimiento del paciente Carlos Nuevo es: 01/01/1980")
+
+    def test_str_con_datos_modificados(self):
+        """Verifica que __str__ funciona correctamente con datos modificados"""
+        self.paciente.set_nombre("Nuevo Nombre")
+        self.paciente.set_dni("00000000")
+        self.paciente.set_nacimiento("31/12/1999")
+        
+        expected = "Paciente: Nuevo Nombre (DNI: 00000000) - Nacimiento: 31/12/1999"
+        self.assertEqual(str(self.paciente), expected)
+
+    def test_validacion_fecha_solo_espacios(self):
+        """Verifica error con fecha que solo contiene espacios"""
+        with self.assertRaises(ValueError):
+            Paciente("12345678", "Juan Pérez", "   ")
+
+    def test_fechas_limite_anos(self):
+        """Verifica fechas con años límite"""
+        # Año muy antiguo
+        paciente_antiguo = Paciente("12345678", "Juan Pérez", "01/01/1900")
+        self.assertEqual(paciente_antiguo.__fecha_nacimiento__, "01/01/1900")
+        
+        # Año futuro
+        paciente_futuro = Paciente("12345678", "Juan Pérez", "01/01/2100")
+        self.assertEqual(paciente_futuro.__fecha_nacimiento__, "01/01/2100")
 
 class TestEspecialidad(unittest.TestCase):
     
@@ -129,6 +220,148 @@ class TestEspecialidad(unittest.TestCase):
             resultado,
             "Especialidad: Neurología - Sin días asignados"
         )
+
+    def test_creacion_especialidad_tipo_solo_espacios(self):
+        """Verifica error al crear especialidad con tipo que solo contiene espacios"""
+        with self.assertRaises(ValueError):
+            Especialidad("   ")
+        with self.assertRaises(ValueError):
+            Especialidad("  \t  ")
+
+    def test_set_especialidad_vacia(self):
+        """Verifica error al establecer especialidad vacía"""
+        especialidad = Especialidad("Cardiología")
+        with self.assertRaises(ValueError):
+            especialidad.set_especialidad("")
+        with self.assertRaises(ValueError):
+            especialidad.set_especialidad("   ")
+
+    def test_verificar_dia_sin_dias_asignados(self):
+        """Verifica que verificar_dia retorna False cuando no hay días asignados"""
+        especialidad = Especialidad("Cardiología")
+        self.assertFalse(especialidad.verificar_dia("lunes"))
+        self.assertFalse(especialidad.verificar_dia("martes"))
+        self.assertFalse(especialidad.verificar_dia(""))
+
+    def test_verificar_dia_con_string_vacio(self):
+        """Verifica comportamiento con string vacío en verificar_dia"""
+        especialidad = Especialidad("Cardiología", ["lunes", "martes"])
+        self.assertFalse(especialidad.verificar_dia(""))
+        self.assertFalse(especialidad.verificar_dia("   "))
+
+    def test_set_dias_desde_lista_vacia(self):
+        """Verifica que set_dias funciona correctamente desde una lista vacía"""
+        especialidad = Especialidad("Cardiología")
+        # Verificar que __dias__ es inicialmente una lista vacía
+        self.assertEqual(especialidad.__dias__, [])
+        
+        # Agregar días
+        especialidad.set_dias("lunes")
+        self.assertEqual(especialidad.__dias__, ["lunes"])
+        
+        especialidad.set_dias("martes")
+        self.assertEqual(especialidad.__dias__, ["lunes", "martes"])
+
+    def test_set_dias_con_none_inicial(self):
+        """Verifica que set_dias maneja correctamente cuando __dias__ es None"""
+        especialidad = Especialidad("Cardiología")
+        # Forzar __dias__ a None para probar la condición
+        especialidad.__dias__ = None
+        
+        # Llamar set_dias debe inicializar la lista
+        especialidad.set_dias("lunes")
+        self.assertEqual(especialidad.__dias__, ["lunes"])
+
+    def test_creacion_con_todos_los_dias_validos(self):
+        """Verifica creación con todos los días válidos"""
+        todos_los_dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+        especialidad = Especialidad("Cardiología", todos_los_dias)
+        
+        # Verificar que todos los días se guardaron
+        self.assertEqual(len(especialidad.__dias__), 7)
+        
+        # Verificar que todos los días son encontrados
+        for dia in todos_los_dias:
+            self.assertTrue(especialidad.verificar_dia(dia))
+
+    def test_creacion_con_dias_diferentes_casos(self):
+        """Verifica creación con días en diferentes casos"""
+        especialidad = Especialidad("Cardiología", ["LUNES", "martes", "MiÉrCoLeS"])
+        
+        # Verificar que encuentra los días independientemente del caso
+        self.assertTrue(especialidad.verificar_dia("lunes"))
+        self.assertTrue(especialidad.verificar_dia("MARTES"))
+        self.assertTrue(especialidad.verificar_dia("miércoles"))
+
+    def test_verificar_dia_con_acentos(self):
+        """Verifica que verificar_dia maneja correctamente los acentos"""
+        especialidad = Especialidad("Cardiología", ["miércoles", "sábado"])
+        
+        self.assertTrue(especialidad.verificar_dia("miércoles"))
+        self.assertTrue(especialidad.verificar_dia("MIÉRCOLES"))
+        self.assertTrue(especialidad.verificar_dia("sábado"))
+        self.assertTrue(especialidad.verificar_dia("SÁBADO"))
+
+    def test_str_con_muchos_dias(self):
+        """Verifica __str__ con muchos días"""
+        dias = ["lunes", "martes", "miércoles", "jueves", "viernes"]
+        especialidad = Especialidad("Cardiología", dias)
+        resultado = str(especialidad)
+        expected = "Especialidad: Cardiología - Días disponibles: lunes, martes, miércoles, jueves, viernes"
+        self.assertEqual(resultado, expected)
+
+    def test_str_con_un_solo_dia(self):
+        """Verifica __str__ con un solo día"""
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        resultado = str(especialidad)
+        expected = "Especialidad: Cardiología - Días disponibles: lunes"
+        self.assertEqual(resultado, expected)
+
+    def test_creacion_con_dias_ordenados_diferente(self):
+        """Verifica que el orden de los días se mantiene"""
+        dias_desordenados = ["viernes", "lunes", "miércoles"]
+        especialidad = Especialidad("Cardiología", dias_desordenados)
+        
+        # Verificar que el orden se mantiene
+        self.assertEqual(especialidad.__dias__, ["viernes", "lunes", "miércoles"])
+
+    def test_dias_validos_constante(self):
+        """Verifica que la constante DIAS_VALIDOS contiene todos los días esperados"""
+        dias_esperados = {"lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"}
+        self.assertEqual(Especialidad.DIAS_VALIDOS, dias_esperados)
+
+    def test_error_mensaje_dias_duplicados(self):
+        """Verifica que el mensaje de error para días duplicados es correcto"""
+        try:
+            Especialidad("Cardiología", ["lunes", "LUNES"])
+            self.fail("Debería haber lanzado ValueError")
+        except ValueError as e:
+            self.assertIn("días duplicados", str(e))
+            self.assertIn("Cardiología", str(e))
+
+    def test_error_mensaje_dia_invalido(self):
+        """Verifica que el mensaje de error para día inválido es correcto"""
+        try:
+            Especialidad("Cardiología", ["lunez"])
+            self.fail("Debería haber lanzado ValueError")
+        except ValueError as e:
+            self.assertIn("lunez", str(e))
+            self.assertIn("no es válido", str(e))
+
+    def test_set_dias_multiples_llamadas(self):
+        """Verifica múltiples llamadas a set_dias"""
+        especialidad = Especialidad("Cardiología")
+        
+        # Agregar varios días
+        dias_a_agregar = ["lunes", "martes", "miércoles", "jueves"]
+        for dia in dias_a_agregar:
+            especialidad.set_dias(dia)
+        
+        self.assertEqual(especialidad.__dias__, dias_a_agregar)
+        
+        # Verificar que todos los días se pueden encontrar
+        for dia in dias_a_agregar:
+            self.assertTrue(especialidad.verificar_dia(dia))
 
 class TestMedico(unittest.TestCase):
     
@@ -245,6 +478,159 @@ class TestMedico(unittest.TestCase):
         resultado = str(medico)
         self.assertIn("Dr. Juan Pérez", resultado)
         self.assertIn("12345", resultado)
+    
+    def test_obtener_especialidad_para_dia_correcta(self):
+        """Test corregido para obtener_especialidad_para_dia"""
+        especialidad = Especialidad("Cardiología", ["lunes", "miércoles"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+        
+        # Debe retornar la especialidad cuando el día está disponible
+        resultado = medico.obtener_especialidad_para_dia("lunes", especialidad)
+        self.assertEqual(resultado, "Cardiología")
+        
+        # Debe retornar None cuando el día no está disponible
+        resultado = medico.obtener_especialidad_para_dia("martes", especialidad)
+        self.assertIsNone(resultado)
+    
+    def test_obtener_especialidad_para_dia_multiple_especialidades(self):
+        """Test con médico que tiene múltiples especialidades"""
+        especialidad1 = Especialidad("Cardiología", ["lunes", "miércoles"])
+        especialidad2 = Especialidad("Medicina General", ["martes", "jueves"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1, especialidad2])
+        
+        # Debe encontrar la especialidad correcta según el día
+        resultado = medico.obtener_especialidad_para_dia("lunes", especialidad1)
+        self.assertEqual(resultado, "Cardiología")
+        
+        resultado = medico.obtener_especialidad_para_dia("martes", especialidad2)
+        self.assertEqual(resultado, "Medicina General")
+        
+        # Día no disponible para ninguna especialidad
+        resultado = medico.obtener_especialidad_para_dia("viernes", especialidad1)
+        self.assertIsNone(resultado)
+    
+    def test_get_especialidad_completa(self):
+        """Test para get_especialidad_completa"""
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+        
+        resultado = medico.get_especialidad_completa()
+        self.assertIn("Dr. Juan Pérez", resultado)
+        self.assertIn("12345", resultado)  # Debería incluir la matrícula también
+    
+    def test_creacion_con_especialidad_unica(self):
+        """Test creación con una sola especialidad (no lista)"""
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        medico = Medico("12345", "Dr. Juan Pérez", especialidad)
+        
+        # Debe convertir a lista internamente
+        self.assertIsInstance(medico.__especialidades__, list)
+        self.assertEqual(len(medico.__especialidades__), 1)
+        self.assertEqual(medico.__especialidades__[0].__tipo__, "Cardiología")
+    
+    def test_creacion_con_lista_especialidades(self):
+        """Test creación con lista de especialidades"""
+        especialidad1 = Especialidad("Cardiología", ["lunes"])
+        especialidad2 = Especialidad("Neurología", ["martes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1, especialidad2])
+        
+        self.assertEqual(len(medico.__especialidades__), 2)
+        tipos = [esp.__tipo__ for esp in medico.__especialidades__]
+        self.assertIn("Cardiología", tipos)
+        self.assertIn("Neurología", tipos)
+    
+    def test_set_matricula_conversion_tipos(self):
+        """Test que set_matricula convierte a string correctamente"""
+        medico = Medico("12345", "Dr. Juan Pérez", [])
+        
+        # Probar con número
+        medico.set_matricula(67890)
+        self.assertEqual(medico.__matricula__, "67890")
+        self.assertIsInstance(medico.__matricula__, str)
+        
+        # Probar con float
+        medico.set_matricula(123.45)
+        self.assertEqual(medico.__matricula__, "123.45")
+    
+    def test_set_especialidad_con_especialidad_unica(self):
+        """Test set_especialidad con una especialidad única"""
+        especialidad1 = Especialidad("Cardiología", ["lunes"])
+        especialidad2 = Especialidad("Neurología", ["martes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1])
+        
+        # Reemplazar con especialidad única
+        medico.set_especialidad(especialidad2)
+        self.assertEqual(medico.__especialidades__, especialidad2)
+    
+    def test_set_especialidad_con_lista(self):
+        """Test set_especialidad con lista de especialidades"""
+        especialidad1 = Especialidad("Cardiología", ["lunes"])
+        especialidad2 = Especialidad("Neurología", ["martes"])
+        especialidad3 = Especialidad("Pediatría", ["miércoles"])
+        
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1])
+        
+        # Reemplazar con lista
+        medico.set_especialidad([especialidad2, especialidad3])
+        self.assertEqual(len(medico.__especialidades__), 2)
+        tipos = [esp.__tipo__ for esp in medico.__especialidades__]
+        self.assertIn("Neurología", tipos)
+        self.assertIn("Pediatría", tipos)
+    
+    def test_str_con_multiples_especialidades(self):
+        """Test __str__ con múltiples especialidades"""
+        especialidad1 = Especialidad("Cardiología", ["lunes"])
+        especialidad2 = Especialidad("Neurología", ["martes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1, especialidad2])
+        
+        resultado = str(medico)
+        self.assertIn("Dr. Juan Pérez", resultado)
+        self.assertIn("12345", resultado)
+        # Debe mostrar las especialidades de alguna forma
+        self.assertTrue(len(resultado) > 30)  # Debe ser más largo por las especialidades
+    
+    def test_agregar_especialidad_a_lista_vacia(self):
+        """Test agregar especialidad cuando no hay especialidades previas"""
+        medico = Medico("12345", "Dr. Juan Pérez", [])
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        
+        medico.agregar_especialidad(especialidad)
+        self.assertEqual(len(medico.__especialidades__), 1)
+        self.assertEqual(medico.__especialidades__[0].__tipo__, "Cardiología")
+    
+    def test_validacion_parametros_none(self):
+        """Test validaciones con parámetros None"""
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        
+        # Estos deberían fallar en la validación de None
+        with self.assertRaises(ValueError):
+            Medico(None, "Dr. Juan Pérez", especialidad)
+            
+        with self.assertRaises(ValueError):
+            Medico("12345", None, especialidad)
+    
+    def test_obtener_especialidad_para_dia_sin_especialidades(self):
+        """Test obtener_especialidad_para_dia con médico sin especialidades"""
+        medico = Medico("12345", "Dr. Juan Pérez", [])
+        especialidad = Especialidad("Cardiología", ["lunes"])
+        
+        resultado = medico.obtener_especialidad_para_dia("lunes", especialidad)
+        self.assertIsNone(resultado)
+    
+    def test_obtener_especialidad_para_dia_case_insensitive(self):
+        """Test que obtener_especialidad_para_dia no es case sensitive"""
+        especialidad = Especialidad("Cardiología", ["Lunes", "MIÉRCOLES"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+        
+        # Debería funcionar con diferentes casos
+        resultado = medico.obtener_especialidad_para_dia("lunes", especialidad)
+        self.assertEqual(resultado, "Cardiología")
+        
+        resultado = medico.obtener_especialidad_para_dia("miércoles", especialidad)
+        self.assertEqual(resultado, "Cardiología")
+        
+        resultado = medico.obtener_especialidad_para_dia("LUNES", especialidad)
+        self.assertEqual(resultado, "Cardiología")
 
 class TestTurno(unittest.TestCase):
     
@@ -545,6 +931,22 @@ class TestHistoriaClinica(unittest.TestCase):
 
         self.assertIn("Las Recetas son:", resultado_recetas)
         self.assertIn("Ibuprofeno", resultado_recetas)
+    
+    def test_error_agregar_receta_nula(self):
+        paciente = Paciente("11223344", "Carlos Gómez", "01/01/1980")
+        historia = HistoriaClinica(paciente)
+
+        with self.assertRaises(ValueError) as contexto:
+            historia.agregar_receta_hist(None)
+        self.assertEqual(str(contexto.exception), "La receta no puede ser nula.")
+
+    def test_agregar_turno_nulo(self):
+        paciente = Paciente("11223344", "Carlos Gómez", "01/01/1980")
+        historia = HistoriaClinica(paciente)
+
+        # En este caso la función no lanza error, simplemente agrega None
+        historia.agregar_turno_a_lista(None)
+        self.assertIn(None, historia.__turnos__)
     
     def test_str_historia_clinica(self):
         paciente = Paciente("11223344", "Carlos Gómez", "01/01/1980")
@@ -901,6 +1303,40 @@ class TestCLI(unittest.TestCase):
             mock_agregar.assert_called()
             mock_print.assert_any_call("Especialidad Cardiología agregada exitosamente")
             mock_print.assert_any_call("Días disponibles: Lunes, Miércoles")
+    
+    @patch("builtins.input", side_effect=["12345678", "87654321", "31-12-2025 15:00"])  # Fecha mal formateada
+    @patch("builtins.print")
+    def test_agendar_turno_fecha_invalida(self, mock_print, mock_input):
+        self.cli.agendar_turno()
+        mock_print.assert_any_call("Error de formato: time data '31-12-2025 15:00' does not match format '%d/%m/%Y %H:%M'")
+
+    @patch("builtins.input", side_effect=["12345678", "87654321", ""])
+    @patch("builtins.print")
+    def test_emitir_receta_con_medicamentos_vacios(self, mock_print, mock_input):
+        with patch("src.clinica.Clinica.emitir_receta", side_effect=RecetaInvalidaError("Debe haber al menos un medicamento en la receta.")):
+            self.cli.emitir_receta()
+            mock_print.assert_any_call("Error - Receta inválida: Debe haber al menos un medicamento en la receta.")
+
+    @patch("builtins.input", side_effect=["00000000"])
+    @patch("builtins.print")
+    def test_ver_historia_clinica_paciente_no_existe(self, mock_print, mock_input):
+        with patch("src.clinica.Clinica.obtener_historia_clinica", side_effect=PacienteNoExisteError("Paciente no encontrado")):
+            self.cli.ver_historia_clinica()
+            mock_print.assert_any_call("Error: Paciente no encontrado")
+
+    @patch("builtins.input", side_effect=["000000", "Lunes"])
+    @patch("builtins.print")
+    def test_obtener_especialidad_disponible_matricula_no_existente(self, mock_print, mock_input):
+        self.cli.clinica.__medicos__.clear()  # Asegurar que esté vacío
+        self.cli.obtener_especialidad_disponible()
+        mock_print.assert_any_call("Error: No existe médico con matrícula 000000")
+
+    @patch("builtins.input", side_effect=["20", "12"])
+    @patch("builtins.print")
+    def test_menu_opcion_invalida_seguida_de_salir(self, mock_print, mock_input):
+        self.cli.ejecutar()
+        mock_print.assert_any_call("Opción inválida. Por favor seleccione del 1 al 12.")
+        mock_print.assert_any_call("¡Gracias por usar el sistema de la clínica!")
 
     @patch("builtins.input", side_effect=["202020", "Lunes"])
     @patch("builtins.print")

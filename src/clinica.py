@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import List, Dict
-import unittest
 
 class PacienteNoExisteError(Exception):
     pass
@@ -119,10 +118,11 @@ class Especialidad:
 class Medico:
     def __init__(self, matricula_medico: str, nombre_medico: str, especialidad: list[Especialidad]):
         
-        if not matricula_medico.strip():
-            raise ValueError("La matrícula del médico no puede estar vacía.")
-        if not nombre_medico.strip():
-            raise ValueError("El nombre del médico no puede estar vacío.")
+        if matricula_medico is None or not str(matricula_medico).strip():
+            raise ValueError("La matrícula del médico no puede estar vacía ni ser None.")
+    
+        if nombre_medico is None or not str(nombre_medico).strip():
+            raise ValueError("El nombre del médico no puede estar vacío ni ser None.")
 
         self.__matricula__ = matricula_medico
         self.__nombre__ = nombre_medico
@@ -162,7 +162,8 @@ class Medico:
         return f'La especialidad del Médico {self.__nombre__} es: {especialidad.obtener_especialidad()}'
     
     def get_especialidad_completa(self):
-        return f'El Médico {self.__nombre__} - {self.__especialidades__}'
+        nombres_especialidades = ', '.join([esp.__tipo__ for esp in self.__especialidades__])
+        return f'El Médico Dr. {self.__nombre__} ({self.__matricula__}) - {nombres_especialidades}'
 
     #Función STR
     def __str__(self) -> str:
