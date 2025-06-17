@@ -5,57 +5,46 @@ from unittest.mock import patch
 
 class TestPaciente(unittest.TestCase):
     def setUp(self):
-        """Configuración inicial para cada test"""
         self.paciente = Paciente("12345678", "Juan Pérez", "01/01/1980")
 
     def test_creacion_paciente(self):
-        """Verifica que los atributos se inicializan correctamente"""
         self.assertEqual(self.paciente.__dni__, "12345678")
         self.assertEqual(self.paciente.__nombre__, "Juan Pérez")
         self.assertEqual(self.paciente.__fecha_nacimiento__, "01/01/1980")
 
     def test_obtener_dni(self):
-        """Prueba el método obtener_dni"""
         self.assertEqual(self.paciente.obtener_dni(), "El DNI del paciente Juan Pérez es: 12345678")
 
     def test_set_dni(self):
-        """Prueba la modificación del DNI"""
         self.paciente.set_dni("87654321")
         self.assertEqual(self.paciente.__dni__, "87654321")
 
     def test_set_nombre(self):
-        """Prueba la modificación del nombre"""
         self.paciente.set_nombre("Carlos Gómez")
         self.assertEqual(self.paciente.__nombre__, "Carlos Gómez")
 
     def test_set_nacimiento(self):
-        """Prueba la modificación de la fecha de nacimiento"""
         self.paciente.set_nacimiento("02/02/1990")
         self.assertEqual(self.paciente.__fecha_nacimiento__, "02/02/1990")
 
     def test_obtener_nombre(self):
-        """Prueba el método obtener_nombre"""
         self.assertEqual(self.paciente.obtener_nombre(), "El nombre del paciente es: Juan Pérez")
 
     def test_obtener_nacimiento(self):
-        """Prueba el método obtener_nacimiento"""
         self.assertEqual(self.paciente.obtener_nacimiento(), "La fecha de nacimiento del paciente Juan Pérez es: 01/01/1980")
 
     def test_obtener_paciente(self):
-        """Prueba el método obtener_paciente"""
         self.assertEqual(self.paciente.__str__(), "Paciente: Juan Pérez (DNI: 12345678) - Nacimiento: 01/01/1980")
     
     def test_creacion_paciente_dni_vacio(self):
         with self.assertRaises(ValueError):
             Paciente("", "Juan Pérez", "10/05/1980")  
-
         with self.assertRaises(ValueError):
             Paciente("   ", "Ana Gómez", "15/08/1995")  
     
     def test_creacion_paciente_nombre_vacio(self):
         with self.assertRaises(ValueError):
             Paciente("12345678", "", "10/05/1980")  
-
         with self.assertRaises(ValueError):
             Paciente("87654321", "   ", "15/08/1995")  
     
@@ -67,7 +56,6 @@ class TestPaciente(unittest.TestCase):
     def test_fecha_formato_invalido(self):
         with self.assertRaises(ValueError):
             Paciente("12345678", "Juan Pérez", "1980-05-10")  
-
         with self.assertRaises(ValueError):
             Paciente("87654321", "Ana Gómez", "10/05/80")
 
@@ -125,6 +113,22 @@ class TestEspecialidad(unittest.TestCase):
             Especialidad("Cardiología", ["Lunes", "lunes", "Miércoles"])  
         with self.assertRaises(ValueError):
             Especialidad("Dermatología", ["martes", "MARTES", "Viernes"])  
+    
+    def test_str_con_dias(self):
+        especialidad = Especialidad("Cardiología", ["Lunes", "Miércoles"])
+        resultado = str(especialidad)
+        self.assertEqual(
+            resultado,
+            "Especialidad: Cardiología - Días disponibles: Lunes, Miércoles"
+        )
+
+    def test_str_sin_dias(self):
+        especialidad = Especialidad("Neurología")
+        resultado = str(especialidad)
+        self.assertEqual(
+            resultado,
+            "Especialidad: Neurología - Sin días asignados"
+        )
 
 class TestMedico(unittest.TestCase):
     
@@ -138,7 +142,7 @@ class TestMedico(unittest.TestCase):
 
     def test_obtener_matricula(self):
         medico = Medico("67890", "Dr. Ana López", Especialidad("Neurología"))
-        self.assertEqual(medico.obtener_matricula(), "La matrícula del Médico Dr. Ana López es: 67890")
+        self.assertEqual(medico.obtener_matricula(), "67890")
 
     def test_set_matricula(self):
         medico = Medico("11111", "Dr. Pedro Gómez", Especialidad("Pediatría"))
@@ -204,6 +208,43 @@ class TestMedico(unittest.TestCase):
         # Verificar que ambas especialidades estén presentes
         self.assertTrue(medico.get_especialidad(especialidad1))
         self.assertTrue(medico.get_especialidad(especialidad2))
+    
+    def test_agregar_especialidad(self):
+        especialidad1 = Especialidad("Cardiología", ["Lunes"])
+        especialidad2 = Especialidad("Neurología", ["Martes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad1])
+    
+        medico.agregar_especialidad(especialidad2)
+    
+        self.assertIn(especialidad2, medico.__especialidades__)
+        self.assertEqual(len(medico.__especialidades__), 2)
+
+    def test_agregar_especialidad_duplicada(self):
+        especialidad = Especialidad("Cardiología", ["Lunes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+    
+        with self.assertRaises(ValueError) as context:
+            medico.agregar_especialidad(especialidad)
+    
+        self.assertIn("ya está asignada", str(context.exception))
+
+    def test_get_nombre(self):
+        medico = Medico("12345", "Dr. Juan Pérez", [])
+        resultado = medico.get_nombre()
+        self.assertEqual(resultado, "El nombre del Médico es: Dr. Juan Pérez")
+
+    def test_get_especialidad(self):
+        especialidad = Especialidad("Cardiología", ["Lunes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+        resultado = medico.get_especialidad(especialidad)
+        self.assertEqual(resultado, "La especialidad del Médico Dr. Juan Pérez es: Cardiología")
+
+    def test_str_medico(self):
+        especialidad = Especialidad("Cardiología", ["Lunes"])
+        medico = Medico("12345", "Dr. Juan Pérez", [especialidad])
+        resultado = str(medico)
+        self.assertIn("Dr. Juan Pérez", resultado)
+        self.assertIn("12345", resultado)
 
 class TestTurno(unittest.TestCase):
     
@@ -291,6 +332,34 @@ class TestTurno(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             Turno(paciente, medico, fecha_invalida, especialidad)
+    
+    def test_obtener_medico(self):
+        paciente = Paciente("12345678", "Ana Gómez", "10/6/1996")
+        especialidad = Especialidad("Pediatría", ["martes"])
+        medico = Medico("9876", "Dr. Sosa", [especialidad])
+        fecha_hora = datetime(2025, 6, 17, 14, 30)  # Martes
+
+        turno = Turno(paciente, medico, fecha_hora, especialidad)
+        
+        resultado = turno.obtener_medico()
+        
+        self.assertEqual(resultado, medico)
+        self.assertEqual(resultado.__nombre__, "Dr. Sosa")
+        self.assertEqual(resultado.__matricula__, "9876")
+    
+    def test_str_turno(self):
+        paciente = Paciente("12345678", "Ana Gómez", "10/6/1996")  # Asegurate de que la clase exista
+        especialidad = Especialidad("Pediatría", ["martes"])
+        medico = Medico("9876", "Dr. Sosa", [especialidad])
+        fecha_hora = datetime(2025, 6, 17, 14, 30)  # Esto cae un martes
+
+        turno = Turno(paciente, medico, fecha_hora, especialidad)
+
+        resultado = str(turno)
+        self.assertIn("Paciente: Ana Gómez", resultado)
+        self.assertIn("Médico: Dr. Sosa", resultado)
+        self.assertIn("17/06/2025 14:30", resultado)
+        self.assertIn("Especialidad: Pediatría", resultado)
 
 class TestReceta(unittest.TestCase):
     
@@ -370,6 +439,22 @@ class TestReceta(unittest.TestCase):
         self.assertEqual(receta.__medicamentos__, ["Insulina", "Metformina"])
         receta.agregar_medicamentos("Levotiroxina")
         self.assertIn("Levotiroxina", receta.__medicamentos__)
+    
+    def test_str_receta(self):
+        paciente = Paciente("12345678", "Ana Gómez", "01/01/1980")
+        especialidad = Especialidad("Clínica Médica", ["lunes"])
+        medico = Medico("9876", "Dr. Sosa", [especialidad])
+        fecha = datetime(2025, 6, 16)  # lunes
+        medicamentos = ["Paracetamol", "Ibuprofeno"]
+
+        receta = Receta(paciente, medico, medicamentos, fecha)
+        resultado = str(receta)
+
+        self.assertIn("Receta [16/06/2025]", resultado)
+        self.assertIn("Paracetamol", resultado)
+        self.assertIn("Ibuprofeno", resultado)
+        self.assertIn("Dr. Sosa", resultado)
+        self.assertIn("Ana Gómez", resultado)
 
 class TestHistoriaClinica(unittest.TestCase):
 
@@ -460,6 +545,25 @@ class TestHistoriaClinica(unittest.TestCase):
 
         self.assertIn("Las Recetas son:", resultado_recetas)
         self.assertIn("Ibuprofeno", resultado_recetas)
+    
+    def test_str_historia_clinica(self):
+        paciente = Paciente("11223344", "Carlos Gómez", "01/01/1980")
+        historia = HistoriaClinica(paciente)
+
+        # Caso 1: sin turnos ni recetas
+        self.assertEqual(str(historia), "Historia Clínica de Carlos Gómez - Sin turnos, Sin recetas")
+
+        # Caso 2: con 1 turno y 1 receta
+        especialidad = Especialidad("Cardiología")
+        medico = Medico("A7890", "Dr. Valeria López", especialidad)
+        especialidad = Especialidad("Dermatología", ["Martes"])
+        turno = Turno(paciente, medico, datetime(2025, 6, 10, 14, 0), especialidad)
+        receta = Receta(paciente, medico, ["Aspirina", "Ibuprofeno"], datetime(2025, 6, 10))
+
+        historia.agregar_turno_a_lista(turno)
+        historia.agregar_receta_hist(receta)
+
+        self.assertEqual(str(historia), "Historia Clínica de Carlos Gómez - 1 turno(s), 1 receta(s)")
 
 class TestClinica(unittest.TestCase):
 
@@ -597,6 +701,112 @@ class TestClinica(unittest.TestCase):
         self.assertIn("Historia Clínica de Esteban Morales", resultado_str)
         self.assertIn("Sin turnos", resultado_str)
         self.assertIn("Sin recetas", resultado_str)
+    
+    def test_agregar_especialidad(self):
+        clinica = Clinica()
+
+        especialidad1 = Especialidad("Pediatría")
+        especialidad2 = Especialidad("pediatría")  # mismo nombre pero distinto casing
+
+        # Caso feliz: se agrega una especialidad nueva
+        clinica.agregar_especialidad(especialidad1)
+        self.assertIn(especialidad1, clinica.__especialidades__)
+
+        # Caso duplicado: se intenta agregar la misma especialidad con diferente casing/espacios
+        with self.assertRaises(ValueError) as context:
+            clinica.agregar_especialidad(especialidad2)
+        self.assertIn("ya está registrada en la clínica", str(context.exception).lower())
+    
+    def test_obtener_medico_por_matricula(self):
+        clinica = Clinica()
+        medico = Medico("12345", "Dr. Test", Especialidad("Traumatología"))
+        clinica.agregar_medico(medico)
+        obtenido = clinica.obtener_medico_por_matricula("12345")
+        self.assertEqual(obtenido, medico)
+    
+    def test_obtener_medico_por_matricula_inexistente(self):
+        clinica = Clinica()
+        with self.assertRaises(MedicoNoExisteError):
+            clinica.obtener_medico_por_matricula("00000")
+    
+    def test_obtener_pacientes(self):
+        clinica = Clinica()
+        paciente = Paciente("12345678", "Paciente Test", "01/01/1980")
+        clinica.agregar_paciente(paciente)
+        pacientes = clinica.obtener_pacientes()
+        self.assertIn(paciente, pacientes)
+
+    def test_obtener_medicos(self):
+        clinica = Clinica()
+        medico = Medico("99999", "Dr. House", Especialidad("Diagnóstico"))
+        clinica.agregar_medico(medico)
+        medicos = clinica.obtener_medicos()
+        self.assertIn(medico, medicos)
+    
+    def test_obtener_turnos(self):
+        clinica = Clinica()
+        paciente = Paciente("11111111", "Paciente Turno", "01/01/1980")
+        especialidad = Especialidad("Neurología", ["Lunes"])
+        medico = Medico("123456", "Dr. Cerebro", especialidad)
+        clinica.agregar_paciente(paciente)
+        clinica.agregar_medico(medico)
+        fecha = datetime(2025, 6, 23, 9, 0)  # Lunes
+
+        clinica.agendar_turno(fecha, "11111111", "123456", especialidad)
+        turnos = clinica.obtener_turnos()
+        self.assertIn("Turnos programados:", turnos)
+    
+    def test_validar_existencia_paciente(self):
+        clinica = Clinica()
+        paciente = Paciente("12312312", "Paciente Existente", "01/01/1980")
+        clinica.agregar_paciente(paciente)
+        self.assertTrue(clinica.validar_existencia_paciente("12312312"))
+        self.assertFalse(clinica.validar_existencia_paciente("00000000"))
+    
+    def test_validar_existencia_medico(self):
+        clinica = Clinica()
+        medico = Medico("654321", "Dr. Presente", Especialidad("Clínica"))
+        clinica.agregar_medico(medico)
+        self.assertTrue(clinica.validar_existencia_medico("654321"))
+        self.assertFalse(clinica.validar_existencia_medico("111111"))
+
+    def test_validar_turno_no_duplicado(self):
+        clinica = Clinica()
+        paciente = Paciente("30303030", "Luis Miguel", "01/01/1990")
+        clinica.agregar_paciente(paciente)
+        especialidad = Especialidad("Oftalmología", ["Miércoles"])
+        clinica.agregar_especialidad(especialidad)
+        medico = Medico("202020", "Dra. Rosa", especialidad)
+        clinica.agregar_medico(medico)
+        fecha = datetime(2025, 6, 18, 10, 0)  # Miércoles
+
+        # Agenda el turno
+        clinica.agendar_turno(fecha, "30303030", "202020", especialidad)
+
+        # Ahora sí valida que no hay turno duplicado (debería devolver False)
+        self.assertFalse(clinica.validar_turno_no_duplicado("202020", fecha))
+
+    def test_validar_especialidad_en_dia(self):
+        clinica = Clinica()
+        especialidad = Especialidad("Oncología", ["Miércoles"])
+        medico = Medico("909090", "Dr. Tumor", especialidad)
+        clinica.agregar_especialidad(especialidad)
+        self.assertTrue(clinica.validar_especialidad_en_dia(medico, "Oncología", "Miércoles"))
+        self.assertFalse(clinica.validar_especialidad_en_dia(medico, "Oncología", "Lunes"))
+
+    def test_obtener_especialidad_disponible(self):
+        clinica = Clinica()
+        especialidad = Especialidad("Dermatología", ["Jueves"])
+        clinica.agregar_especialidad(especialidad)
+
+        medico = Medico("202020", "Dra. Rosa", especialidad)
+        clinica.agregar_medico(medico)
+
+        fecha = datetime(2025, 6, 19, 14, 0)  # Jueves
+        dia_semana = clinica.obtener_dia_semana_en_espanol(fecha)
+
+        respuesta = clinica.obtener_especialidad_disponible(medico.obtener_matricula(), dia_semana, especialidad)
+        self.assertIn("está disponible el día Jueves", respuesta)
 
 class TestCLI(unittest.TestCase):
 
@@ -658,6 +868,51 @@ class TestCLI(unittest.TestCase):
     def test_cerrar_sistema(self, mock_print, mock_input):
         self.cli.ejecutar()
         mock_print.assert_any_call("¡Gracias por usar el sistema de la clínica!")
+
+    @patch("builtins.input", side_effect=["12345678", "202020", "Paracetamol, Ibuprofeno"])
+    @patch("builtins.print")
+    def test_emitir_receta(self, mock_print, mock_input):
+        with patch("src.clinica.Clinica.emitir_receta", return_value="Receta emitida correctamente"):
+            self.cli.emitir_receta()
+            mock_print.assert_any_call("Receta emitida exitosamente")
+            mock_print.assert_any_call("Receta emitida correctamente")
+
+    @patch("builtins.print")
+    def test_ver_todos_los_turnos(self, mock_print):
+        turnos_mock = ["Turno 1", "Turno 2"]
+        with patch("src.clinica.Clinica.obtener_turnos", return_value=turnos_mock):
+            self.cli.ver_todos_los_turnos()
+            mock_print.assert_any_call("\n--- TODOS LOS TURNOS ---")
+            mock_print.assert_any_call("1. Turno 1")
+            mock_print.assert_any_call("2. Turno 2")
+
+    @patch("builtins.print")
+    def test_ver_todos_los_medicos(self, mock_print):
+        medicos_mock = ["Dr. Ana Gómez", "Dr. Juan Pérez"]
+        with patch("src.clinica.Clinica.obtener_medicos", return_value=medicos_mock):
+            self.cli.ver_todos_los_medicos()
+            mock_print.assert_any_call("\n--- TODOS LOS MÉDICOS ---")
+            mock_print.assert_any_call("1. Dr. Ana Gómez")
+            mock_print.assert_any_call("2. Dr. Juan Pérez")
+
+    @patch("builtins.input", side_effect=["Cardiología", "Lunes", "Miércoles", ""])  # Termina con Enter vacío
+    @patch("builtins.print")
+    def test_agregar_especialidad(self, mock_print, mock_input):
+        with patch("src.clinica.Clinica.agregar_especialidad") as mock_agregar:
+            self.cli.agregar_especialidad()
+            mock_agregar.assert_called()
+            mock_print.assert_any_call("Especialidad Cardiología agregada exitosamente")
+            mock_print.assert_any_call("Días disponibles: Lunes, Miércoles")
+
+    @patch("builtins.input", side_effect=["202020", "Lunes"])
+    @patch("builtins.print")
+    def test_obtener_especialidad_disponible(self, mock_print, mock_input):
+        # Simular que la matrícula existe en la clínica
+        self.cli.clinica.__medicos__["202020"] = "Médico Mock"
+        
+        with patch("src.clinica.Clinica.obtener_especialidad_disponible", return_value="Especialidad disponible en Lunes"):
+            self.cli.obtener_especialidad_disponible()
+            mock_print.assert_any_call("Especialidad disponible en Lunes")
 
 if __name__ == "__main__":
     unittest.main()

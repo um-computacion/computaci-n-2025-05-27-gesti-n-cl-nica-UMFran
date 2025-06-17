@@ -41,7 +41,6 @@ class Paciente:
         return f'El DNI del paciente {self.__nombre__} es: {self.__dni__}'
     
     #Funciones agregadas
-
     def set_dni(self, dni_paciente):
         self.__dni__ = str(dni_paciente)
     
@@ -131,7 +130,7 @@ class Medico:
 
 
     def obtener_matricula(self):
-        return f'La matrícula del Médico {self.__nombre__} es: {self.__matricula__}'
+        return f'{self.__matricula__}'
     
     def obtener_especialidad_para_dia(self, dia, especialidad: Especialidad)-> str | None:
         for especialidad in self.__especialidades__:
@@ -167,7 +166,7 @@ class Medico:
 
     #Función STR
     def __str__(self) -> str:
-        return f"Dr. {self.__nombre__} - {self.__especialidades__} (Matrícula: {self.__matricula__})"
+        return f"{self.__nombre__} - {self.__especialidades__} (Matrícula: {self.__matricula__})"
 
 class Turno:
     def __init__(self, paciente: Paciente, medico: Medico, fecha_hora: datetime, especialidad: Especialidad):
@@ -285,7 +284,6 @@ class Clinica():
         self.__especialidades__.append(especialidad)
  
     def obtener_medico_por_matricula(self, matricula: str) -> "Medico":
-        """Devuelve un médico por su matrícula, si existe"""
         if matricula in self.__medicos__:
             return self.__medicos__[matricula]
         else:
@@ -407,21 +405,31 @@ class Clinica():
         dia_ingles = fecha_hora.strftime('%A').lower()
         return dias_espanol.get(dia_ingles, dia_ingles)
 
-    def obtener_especialidad_disponible(self, medico: Medico, dia_semana: str, especialidad: Especialidad) -> str:
-        especialidad_medico = medico.__especialidades__
+    def obtener_especialidad_disponible(self, matricula_medico: str, dia_semana: str, especialidad: Especialidad) -> str:
+        # Buscar el médico por matrícula
+        medico = self.obtener_medico_por_matricula(matricula_medico)
+        if not medico:
+            return f"El médico con matrícula {matricula_medico} no está registrado."
+
+        # Verificar si la especialidad está entre las especialidades del médico
+        especialidades_medico = medico.__especialidades__  # lista de objetos Especialidad
         
-        # Verificar si la especialidad del médico existe en el sistema
-        if especialidad_medico not in self.__especialidades__:
-            return f"La especialidad '{especialidad_medico}' del Dr. {medico.__nombre__} no está registrada en el sistema"
-        
-        especialidad_obj = self.__especialidades__[especialidad_medico]
-        
-        # Verificar si la especialidad está disponible en el día solicitado
-        if especialidad.verificar_dia(dia_semana):
-            return f"La especialidad '{especialidad_medico}' del Dr. {medico.__nombre__} está disponible el día {dia_semana.capitalize()}"
+        # Buscar si alguna de las especialidades del médico coincide con la especialidad solicitada (por nombre)
+        especialidad_encontrada = None
+        for esp in especialidades_medico:
+            if esp.__tipo__.lower() == especialidad.__tipo__.lower():
+                especialidad_encontrada = esp
+                break
+
+        if not especialidad_encontrada:
+            return f"El Dr. {medico.__nombre__} no tiene la especialidad '{especialidad.nombre}' registrada."
+
+        # Verificar si la especialidad está disponible en el día pedido
+        if especialidad_encontrada.verificar_dia(dia_semana):
+            return f"La especialidad '{especialidad.__tipo__}' del Dr. {medico.__nombre__} está disponible el día {dia_semana.capitalize()}."
         else:
-            dias_disponibles = ", ".join(especialidad.__dias__) if especialidad.__dias__ else "ningún día"
-            return f"La especialidad '{especialidad_medico}' del Dr. {medico.__nombre__} NO está disponible el día {dia_semana.capitalize()}. Días disponibles: {dias_disponibles}"
+            dias_disponibles = ", ".join(especialidad_encontrada.__dias__) if especialidad_encontrada.__dias__ else "ningún día"
+            return f"La especialidad '{especialidad.__tipo__}' del Dr. {medico.__nombre__} NO está disponible el día {dia_semana.capitalize()}. Días disponibles: {dias_disponibles}."
     
     def validar_especialidad_en_dia(self, medico: Medico, especialidad_solicitada: str, dia_semana: str) -> bool:
         # Verificar si el médico tiene la especialidad solicitada
@@ -557,7 +565,6 @@ class CLI:
         except PacienteNoExisteError as e:
             print(f"Error: {e}")
 
-    
     def ver_todos_los_turnos(self):
         print("\n--- TODOS LOS TURNOS ---")
         turnos = self.clinica.obtener_turnos()
@@ -634,7 +641,7 @@ class CLI:
         """Ejecuta la interfaz CLI"""
         while True:
             self.mostrar_menu()
-            opcion = str(input("Seleccione una opción (1-11): "))
+            opcion = str(input("Seleccione una opción (1-12): "))
             print("opcion: ", opcion)
             if opcion == "1":
                 self.agregar_paciente()
